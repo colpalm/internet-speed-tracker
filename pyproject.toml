@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "internet-speed-tracker"
+version = "0.1.0"
+description = ""
+authors = ["Colin Palmer <colinpalmer91@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[tool.poetry.group.dev.dependencies]
+behave = "^1.2.6"
+black = ">=22.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

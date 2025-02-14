@@ -4,6 +4,7 @@ import logging
 
 from datetime import datetime
 from internet_speed_tracker.enums import TimeOfDay
+from internet_speed_tracker.speed_test_result import SpeedTestResult
 
 
 def determine_time_of_day(hour: int) -> TimeOfDay:
@@ -19,38 +20,41 @@ class SpeedTest:
     def __init__(self):
         # Initialize Logger
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
 
-        # Initialize fields
-        self.timestamp = None
-        self.download_speed = None
-        self.upload_speed = None
-        self.latency = None
-        self.time_of_day = None
-        self.server = None
-
-    def run_test(self):
+    def _execute_speedtest(self) -> str:
+        """Execute speedtest CLI command and return raw output."""
         try:
-            logging.info("Running speed test")
+            self.logger.info("Running speedtest CLI command")
             result = subprocess.run(['speedtest', '--format', 'json'], capture_output=True, text=True)
         except Exception as e:
-            self.logger.error("Error running speedtest.")
+            self.logger.error("Error running speedtest CLI.")
             raise e
 
-        if result.returncode == 0:
-            data = json.loads(result.stdout)
-
-            # General info
-            self.timestamp = datetime.strptime(data['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
-            self.server = data['server']
-            self.time_of_day = determine_time_of_day(self.timestamp.hour)
-
-            # Numbers
-            self.latency = data['ping']['latency']
-            self.download_speed = data['download']['bandwidth'] / 125_000
-            self.upload_speed = data['upload']['bandwidth'] / 125_000
-
-            logging.info("Speed test successful")
-
-        else:
+        if result.returncode != 0:
             self.logger.error(f"Error running speedtest, return code was {result.returncode} (should be 0).")
+            raise RuntimeError("Speed test failed.")
+
+        return result.stdout
+
+    def _parse_speedtest_output(self, output: str) -> SpeedTestResult:
+        """Parse JSON output from speedtest CLI and return a SpeedTestResult."""
+        data = json.loads(output)
+
+        # General info
+        timestamp = datetime.strptime(data['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+        server = data['server']
+        time_of_day = determine_time_of_day(timestamp.hour)
+
+        # Numerical Data
+        latency = data['ping']['latency']
+        download_speed = data['download']['bandwidth'] / 125_000
+        upload_speed = data['upload']['bandwidth'] / 125_000
+
+        return SpeedTestResult(timestamp, download_speed, upload_speed, latency, time_of_day, server)
+
+    def run_test(self) -> SpeedTestResult:
+        """Run a speed test and return parsed results."""
+        raw_output = self._execute_speedtest()
+        speed_result = self._parse_speedtest_output(raw_output)
+        self.logger.info("Speed test successful")
+        return speed_result

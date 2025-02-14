@@ -16,16 +16,18 @@ def step_impl(context):
 
 @when('I run the speed test')
 def step_impl(context):
+    speedtest = speed_test.SpeedTest()
+    context.result = speedtest.run_test()
+    # record current time of day for validation
     current_hour = datetime.datetime.now(datetime.UTC).hour
-    context.speedtest = speed_test.SpeedTest()
-    context.speedtest.run_test()
-    context.time_of_day = speed_test.determine_time_of_day(current_hour)
+    context.expected_time_of_day = speed_test.determine_time_of_day(current_hour)
 
 
 @then('I can the see the output from the speedtest')
 def step_impl(context):
-    assert context.speedtest.timestamp is not None
-    assert context.speedtest.download_speed is not None
-    assert context.speedtest.upload_speed is not None
-    assert context.speedtest.time_of_day == context.time_of_day, \
-        f"speedtest time of day {context.speedtest.time_of_day}: context time of day: {context.time_of_day}"
+    result = context.result
+    assert result.timestamp is not None, "Timestamp does not have a value"
+    assert result.download_speed is not None, "DownloadSpeed does not have a value"
+    assert result.upload_speed is not None, "UploadSpeed does not have a value"
+    assert result.time_of_day == context.expected_time_of_day, \
+        f"speedtest time of day {result.time_of_day}: context time of day: {context.expected_time_of_day}"

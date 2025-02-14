@@ -36,7 +36,8 @@ class SpeedTest:
 
         return result.stdout
 
-    def _parse_speedtest_output(self, output: str) -> SpeedTestResult:
+    @staticmethod
+    def _parse_speedtest_output(output: str) -> SpeedTestResult:
         """Parse JSON output from speedtest CLI and return a SpeedTestResult."""
         data = json.loads(output)
 
@@ -55,6 +56,6 @@ class SpeedTest:
     def run_test(self) -> SpeedTestResult:
         """Run a speed test and return parsed results."""
         raw_output = self._execute_speedtest()
-        speed_result = self._parse_speedtest_output(raw_output)
+        speed_result = SpeedTest._parse_speedtest_output(raw_output)
         self.logger.info("Speed test successful")
         return speed_result

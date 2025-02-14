@@ -42,13 +42,13 @@ def test_determine_time_of_day(hour: int, expected: TimeOfDay):
     assert determine_time_of_day(hour) == expected
 
 
-def test_parse_speedtest_output(speedtest_instance, sample_json_output):
+def test_parse_speedtest_output(sample_json_output):
     """
     Test the isolated JSON parsing function.
     Given a known JSON string, the parser should return a SpeedTestResult
     with the correct values.
     """
-    result: SpeedTestResult = speedtest_instance._parse_speedtest_output(sample_json_output)
+    result: SpeedTestResult = SpeedTest._parse_speedtest_output(sample_json_output)
 
     expected_timestamp: datetime = datetime.strptime(SAMPLE_RESPONSE['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
     expected_time_of_day: TimeOfDay = determine_time_of_day(expected_timestamp.hour)

@@ -1,7 +1,8 @@
 # internet-speed-tracker
 Track home internet speed
 
-## Run Tests
-- Integration Tests: From the root of the project, execute `poetry run behave tests/features`
-- Unit Tests: From the root of the project, execute `poetry run pytest`
-  - To change log settings, update pytest.ini, `log_cli = true` or add the cli flag: `poetry run pytest --log-cli-level=INFO`
+## Install Dependencies and Run Tests
+- To run all targets: `make all`
+- To run unit tests: `make pytest-tests`
+  - To increase logging, update `pytest.ini` file with: `log_cli = true`
+- To run integration tests: `make behave-tests`

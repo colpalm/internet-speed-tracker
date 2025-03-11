@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from backend.database.models import Base, SpeedTestRecord
-from internet_speed_tracker.speed_test_result import SpeedTestResult
+from internet_speed_tracker.schemas import SpeedTestResult
 
 logger = logging.getLogger(__name__)
 

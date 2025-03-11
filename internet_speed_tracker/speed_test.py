@@ -4,7 +4,7 @@ import logging
 
 from datetime import datetime
 from internet_speed_tracker.enums import TimeOfDay
-from internet_speed_tracker.speed_test_result import SpeedTestResult
+from internet_speed_tracker.schemas import SpeedTestResult
 
 
 def determine_time_of_day(hour: int) -> TimeOfDay:
@@ -51,7 +51,13 @@ class SpeedTest:
         download_speed = data['download']['bandwidth'] / 125_000
         upload_speed = data['upload']['bandwidth'] / 125_000
 
-        return SpeedTestResult(timestamp, download_speed, upload_speed, latency, time_of_day, server)
+        return SpeedTestResult(
+            timestamp=timestamp,
+            download_speed=download_speed,
+            upload_speed=upload_speed,
+            latency=latency,
+            time_of_day=time_of_day,
+            server=server)
 
     def run_test(self) -> SpeedTestResult:
         """Run a speed test and return parsed results."""

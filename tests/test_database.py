@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 from internet_speed_tracker.enums import TimeOfDay
-from internet_speed_tracker.speed_test_result import SpeedTestResult
+from internet_speed_tracker.schemas import SpeedTestResult
 from backend.database.db_manager import DatabaseManager
 from backend.database.models import SpeedTestRecord
 

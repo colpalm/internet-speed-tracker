@@ -1,8 +1,10 @@
 # internet-speed-tracker
 Track home internet speed
 
-## Install Dependencies and Run Tests
-- To run all targets: `make all`
-- To run unit tests: `make pytest-tests`
-  - To increase logging, update `pytest.ini` file with: `log_cli = true`
-- To run integration tests: `make behave-tests`
+## Build and Run Tests
+- Run `make backend-all` to install dependencies and run python tests
+- Run `make frontend-build` to build the frontend
+
+## Deploy Locally
+- Run `make dev` to deploy the backend and frontend services
+- From the `backend` directory, run `poetry run python internet_speed_tracker/main.py` to generate a speed test result.

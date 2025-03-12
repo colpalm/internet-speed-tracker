@@ -4,6 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Colin Palmer <colinpalmer91@gmail.com>"]
 readme = "README.md"
+packages = [
+    {include = "api"},
+    {include = "database"},
+    {include = "internet_speed_tracker"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"

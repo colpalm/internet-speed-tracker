@@ -2,8 +2,8 @@ import pytest
 from datetime import datetime
 from internet_speed_tracker.enums import TimeOfDay
 from internet_speed_tracker.schemas import SpeedTestResult
-from backend.database.db_manager import DatabaseManager
-from backend.database.models import SpeedTestRecord
+from database.db_manager import DatabaseManager
+from database.models import SpeedTestRecord
 
 DB_STR = "sqlite://"
 

@@ -11,7 +11,7 @@ poetry install
 
 ### Start the backend development server
 ```bash
-poetry run uvicorn backend.api.app:app --reload
+poetry run uvicorn api.app:app --reload
 ```
 
 ### Generate Speed Test Results

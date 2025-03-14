@@ -1,7 +1,11 @@
-.PHONY: backend-all install-dependencies pytest-tests behave-tests python-clean-up frontend-build frontend-deploy dev
+.PHONY: full-build backend-all frontend-all \
+		install-dependencies pytest-tests behave-tests python-clean-up \
+		frontend-lint frontend-build frontend-deploy dev
 
 # Runs all backend targets
+full-build: backend-all frontend-all
 backend-all: install-dependencies pytest-tests behave-tests python-clean-up
+frontend-all: frontend-lint frontend-build
 
 ## Backend Commands ##
 
@@ -23,6 +27,10 @@ python-clean-up:
 	find . -name "__pycache__" -delete
 
 ## Frontend Commands ##
+
+# Lint frontend
+frontend-lint:
+	cd frontend && npm run lint
 
 # Build frontend
 frontend-build:

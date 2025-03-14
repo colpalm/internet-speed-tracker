@@ -14,12 +14,19 @@ export default function Home() {
       try {
         const response = await axios.get(`${API_URL}/api/speed-tests/latest`);
         setSpeedTest(response.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
           console.error("Error fetching speed test:", err)
-          setError(err.response?.data?.detail ||"Failed to fetch speed test data.");
+
+          if (axios.isAxiosError(err)) {
+              setError(err.response?.data?.detail || "Failed to fetch speed test data.");
+          } else if (err instanceof Error) {
+              setError(err.message);
+          } else {
+              setError("An unknown error occurred");
+          }
       }
     })();
-  }, []);
+  }, [API_URL]);
 
   if (error) return <p style={{ color: "red" }}>{error}</p>;
   if (!speedTest) return <p>Loading latest speed test...</p>;

@@ -2,8 +2,8 @@
 Track home internet speed
 
 ## Build and Run Tests
-- Run `make backend-all` to install dependencies and run python tests
-- Run `make frontend-build` to build the frontend
+- Run `make full-build` to install backend dependencies, build frontend and run all tests
+- See make file for other targets
 
 ## Deploy Locally
 - Run `make dev` to deploy the backend and frontend services

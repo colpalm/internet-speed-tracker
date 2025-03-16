@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
-from internet_speed_tracker.enums import TimeOfDay
-from internet_speed_tracker.schemas import SpeedTestResult
+from shared.enums import TimeOfDay
+from shared.schemas import SpeedTestResult
 from database.db_manager import DatabaseManager
 from database.models import SpeedTestRecord
 
@@ -35,7 +35,7 @@ def test_save_speed_test_result(test_db, sample_speed_test_result):
     assert success, "Failed to save speed test result"
 
     # Verify successful save
-    session = test_db.Session()
+    session = test_db.session_factory()
     try:
         record = session.query(SpeedTestRecord).first()
         assert record is not None, "No record found in database"
@@ -76,5 +76,5 @@ def test_get_speed_test_result(test_db, sample_speed_test_result):
     assert records[1].timestamp > records[2].timestamp
 
     # Verify values
-    assert records[0].download_speed == 104.0
-    assert records[0].upload_speed == 24.0
+    assert records[0].download_speed == pytest.approx(104.0)
+    assert records[0].upload_speed == pytest.approx(24.0)

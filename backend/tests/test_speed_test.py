@@ -4,9 +4,9 @@ from datetime import datetime
 from unittest.mock import patch, Mock
 
 import pytest
-from internet_speed_tracker.enums import TimeOfDay
-from internet_speed_tracker.speed_test import determine_time_of_day, SpeedTest
-from internet_speed_tracker.schemas import SpeedTestResult
+from shared.enums import TimeOfDay
+from speedtracker.speed_test import determine_time_of_day, SpeedTest
+from shared.schemas import SpeedTestResult
 
 SAMPLE_RESPONSE = {
     "timestamp": "2025-02-13T14:30:00Z",
@@ -71,10 +71,13 @@ def test_execute_speedtest_cli_error(speedtest_instance):
         assert "Speed test failed" in str(exec_info.value)
 
 
-def test_execute_speedtest_subprocess_error(speedtest_instance):
+def test_execute_speedtest_subprocess_error(speedtest_instance, caplog):
     """Test handling of subprocess execution error."""
     with patch('subprocess.run') as mock_run:
         mock_run.side_effect = Exception("Subprocess Error")
         with pytest.raises(Exception) as exec_info:
             speedtest_instance._execute_speedtest()
-            assert "Error running speedtest CLI" in str(exec_info.value)
+        # Assert log is captured
+        assert any("Error running speedtest CLI" in message for message in caplog.text.splitlines())
+        # Assert the exception message is correct
+        assert "Subprocess Error" in str(exec_info.value)

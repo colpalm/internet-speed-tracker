@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from database.models import Base, SpeedTestRecord
-from internet_speed_tracker.schemas import SpeedTestResult
+from shared.schemas import SpeedTestResult
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class DatabaseManager:
             db_url (str): SQLAlchemy database URL. Defaults to a local SQLite database.
         """
         self.engine = create_engine(db_url)
-        self.Session = sessionmaker(bind=self.engine)
+        self.session_factory = sessionmaker(bind=self.engine)
 
     def init_db(self):
         """Create all tables if they don't exist."""
@@ -34,7 +34,7 @@ class DatabaseManager:
         """
         session = None
         try:
-            session = self.Session()
+            session = self.session_factory()
 
             # Extract server info
             server_id = result.server.get("id") if result.server else None
@@ -75,7 +75,7 @@ class DatabaseManager:
         """
         session = None
         try:
-            session = self.Session()
+            session = self.session_factory()
             records = session.query(SpeedTestRecord) \
                 .order_by(SpeedTestRecord.timestamp.desc()) \
                 .limit(limit) \

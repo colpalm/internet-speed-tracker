@@ -3,8 +3,8 @@ import json
 import logging
 
 from datetime import datetime
-from internet_speed_tracker.enums import TimeOfDay
-from internet_speed_tracker.schemas import SpeedTestResult
+from shared.enums import TimeOfDay
+from shared.schemas import SpeedTestResult
 
 
 def determine_time_of_day(hour: int) -> TimeOfDay:

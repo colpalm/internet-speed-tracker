@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, field_serializer
-from internet_speed_tracker.enums import TimeOfDay
+from shared.enums import TimeOfDay
 
 
 class SpeedTestResult(BaseModel):

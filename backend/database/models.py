@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime, Enum
 from sqlalchemy.orm import declarative_base
-from internet_speed_tracker.enums import TimeOfDay
+from shared.enums import TimeOfDay
 
 
 Base = declarative_base()

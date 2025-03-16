@@ -1,6 +1,6 @@
 import logging
 import requests
-from internet_speed_tracker.speed_test import SpeedTest
+from speedtracker.speed_test import SpeedTest
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

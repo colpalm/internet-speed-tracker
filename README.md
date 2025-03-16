@@ -7,4 +7,5 @@ Track home internet speed
 
 ## Deploy Locally
 - Run `make dev` to deploy the backend and frontend services
-- From the `backend` directory, run `poetry run python internet_speed_tracker/main.py` to generate a speed test result.
+- From the `backend` directory, run `poetry run python speedtracker/main.py` to generate a speed test result.
+- Access the frontend at `http://localhost:3000`

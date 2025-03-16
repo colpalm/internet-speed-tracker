@@ -3,7 +3,7 @@ import os
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from database.db_manager import DatabaseManager
-from internet_speed_tracker.schemas import SpeedTestResult
+from shared.schemas import SpeedTestResult
 from dotenv import load_dotenv
 
 # Load .env variables

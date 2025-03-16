@@ -3,7 +3,7 @@ import logging
 
 from behave import given, when, then
 import subprocess
-from internet_speed_tracker import speed_test
+from speedtracker import speed_test
 
 logging.basicConfig(level=logging.INFO)
 

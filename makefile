@@ -1,17 +1,22 @@
-.PHONY: full-build backend-all frontend-all \
+.PHONY: full-build backend-formatting-testing frontend-all \
 		install-dependencies pytest-tests behave-tests python-clean-up \
+		docker-build docker-build-api \
 		frontend-lint frontend-build frontend-deploy dev
 
+# Build version
+VERSION=1.0.0-dev
+
 # Runs all backend targets
-full-build: backend-all frontend-all
-backend-all: install-dependencies pytest-tests behave-tests python-clean-up
+full-build: backend-formatting-testing docker-build frontend-all
+backend-formatting-testing: install-dependencies pytest-tests behave-tests python-clean-up
+docker-build: docker-build-api
 frontend-all: frontend-lint frontend-build
 
 ## Backend Commands ##
 
 # Install poetry dependencies
 install-dependencies:
-	cd backend && poetry install --with dev
+	cd backend && poetry lock && poetry install --with dev
 
 # Run pytest unit tests
 pytest-tests:
@@ -20,6 +25,11 @@ pytest-tests:
 # Run behave integration tests
 behave-tests:
 	cd backend && poetry run behave tests/features
+
+# API DB Image Build
+docker-build-api:
+	poetry -C backend lock
+	docker build -t internet-speed-tracker-api:$(VERSION) -f docker/server/Dockerfile .
 
 # Clean up __pycache__ and .pyc files
 python-clean-up:

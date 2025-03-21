@@ -16,5 +16,5 @@ poetry run uvicorn api.app:app --reload
 
 ### Generate Speed Test Results
 ```bash
-poetry run python speedtracker/main.py
+poetry run python speedtest/main.py
 ```

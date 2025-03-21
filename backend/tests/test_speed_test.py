@@ -5,7 +5,7 @@ from unittest.mock import patch, Mock
 
 import pytest
 from shared.enums import TimeOfDay
-from speedtracker.speed_test import determine_time_of_day, SpeedTest
+from speedtest.speed_test import determine_time_of_day, SpeedTest
 from shared.schemas import SpeedTestResult
 
 SAMPLE_RESPONSE = [{

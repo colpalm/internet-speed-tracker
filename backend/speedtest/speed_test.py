@@ -60,8 +60,6 @@ class SpeedTest:
         timestamp = datetime.fromisoformat(entry['timestamp'])
         server = entry['server']
         time_of_day = determine_time_of_day(timestamp.hour)
-        logging.info(f"timestamp.hour: {timestamp.hour}")
-        logging.info(f"Time of day: {time_of_day}")
 
         # Numerical Data
         latency = entry['ping']

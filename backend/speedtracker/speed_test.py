@@ -3,7 +3,7 @@ import json
 import logging
 
 from datetime import datetime
-from shared.enums import TimeOfDay
+from shared.enums import TimeOfDay, SpeedTestServer
 from shared.schemas import SpeedTestResult
 
 
@@ -22,34 +22,51 @@ class SpeedTest:
         self.logger = logging.getLogger(__name__)
 
     def _execute_speedtest(self) -> str:
-        """Execute speedtest CLI command and return raw output."""
-        try:
-            self.logger.info("Running speedtest CLI command")
-            result = subprocess.run(['speedtest', '--format', 'json'], capture_output=True, text=True)
-        except Exception as e:
-            self.logger.error("Error running speedtest CLI.")
-            raise e
+        """Execute librespeed-cli command and return raw output."""
+        # Providing specific servers since default option was failing
+        servers = [
+            SpeedTestServer.NYC_CLOUVIDER,
+            SpeedTestServer.ATLANTA_CLOUVIDER,
+            SpeedTestServer.CHICAGO_SHARKTECH
+        ]
 
-        if result.returncode != 0:
-            self.logger.error(f"Error running speedtest, return code was {result.returncode} (should be 0).")
-            raise RuntimeError("Speed test failed.")
+        for server in servers:
+            self.logger.info(f'Running librespeed-cli command with {server.location} (ID: {server.server_id})')
+            try:
+                result = subprocess.run(
+                    ['librespeed-cli', '--json', '--server', str(server.server_id)],
+                    capture_output=True,
+                    text=True
+                )
+            except Exception as e:
+                self.logger.error(f"Error running librespeed-cli with server {server.location}: {str(e)}.")
+                continue  # move on to the next server
 
-        return result.stdout
+            if result.returncode == 0:
+                return result.stdout
+
+            self.logger.warning(f"Speed test with server {server.location} failed")
+            self.logger.error(f"Return code was {result.returncode} (should be 0).")
+
+        raise RuntimeError("Speed test failed with all designated servers.")
 
     @staticmethod
     def _parse_speedtest_output(output: str) -> SpeedTestResult:
-        """Parse JSON output from speedtest CLI and return a SpeedTestResult."""
+        """Parse JSON output from librespeed-cli and return a SpeedTestResult."""
         data = json.loads(output)
+        entry = data[0]
 
         # General info
-        timestamp = datetime.strptime(data['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
-        server = data['server']
+        timestamp = datetime.fromisoformat(entry['timestamp'])
+        server = entry['server']
         time_of_day = determine_time_of_day(timestamp.hour)
+        logging.info(f"timestamp.hour: {timestamp.hour}")
+        logging.info(f"Time of day: {time_of_day}")
 
         # Numerical Data
-        latency = data['ping']['latency']
-        download_speed = data['download']['bandwidth'] / 125_000
-        upload_speed = data['upload']['bandwidth'] / 125_000
+        latency = entry['ping']
+        download_speed = entry['download']
+        upload_speed = entry['upload']
 
         return SpeedTestResult(
             timestamp=timestamp,

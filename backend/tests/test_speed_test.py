@@ -8,13 +8,13 @@ from shared.enums import TimeOfDay
 from speedtracker.speed_test import determine_time_of_day, SpeedTest
 from shared.schemas import SpeedTestResult
 
-SAMPLE_RESPONSE = {
-    "timestamp": "2025-02-13T14:30:00Z",
-    "ping": {"latency": 15.5},
-    "download": {"bandwidth": 625000},
-    "upload": {"bandwidth": 312500},
-    "server": {"id": 1234, "name": "Test Server"}
-}
+SAMPLE_RESPONSE = [{
+    "timestamp": "2025-03-20T21:46:35.151229-04:00",
+    "ping": 15.5,
+    "download": 200.5,
+    "upload": 10.2,
+    "server": {"name": "Test Server", "url": "https://test.com"},
+}]
 
 
 @pytest.fixture
@@ -49,16 +49,17 @@ def test_parse_speedtest_output(sample_json_output):
     with the correct values.
     """
     result: SpeedTestResult = SpeedTest._parse_speedtest_output(sample_json_output)
+    response_entry: dict = SAMPLE_RESPONSE[0]
 
-    expected_timestamp: datetime = datetime.strptime(SAMPLE_RESPONSE['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+    expected_timestamp: datetime = datetime.fromisoformat(response_entry['timestamp'])
     expected_time_of_day: TimeOfDay = determine_time_of_day(expected_timestamp.hour)
 
     assert result.timestamp == expected_timestamp
-    assert result.download_speed == SAMPLE_RESPONSE['download']['bandwidth'] / 125_000
-    assert result.upload_speed == SAMPLE_RESPONSE['upload']['bandwidth'] / 125_000
-    assert result.latency == SAMPLE_RESPONSE['ping']['latency']
+    assert result.download_speed == response_entry['download']
+    assert result.upload_speed == response_entry['upload']
+    assert result.latency == response_entry['ping']
     assert result.time_of_day == expected_time_of_day
-    assert result.server == SAMPLE_RESPONSE['server']
+    assert result.server == response_entry['server']
 
 
 def test_execute_speedtest_cli_error(speedtest_instance):
@@ -78,6 +79,6 @@ def test_execute_speedtest_subprocess_error(speedtest_instance, caplog):
         with pytest.raises(Exception) as exec_info:
             speedtest_instance._execute_speedtest()
         # Assert log is captured
-        assert any("Error running speedtest CLI" in message for message in caplog.text.splitlines())
+        assert any("Error running librespeed-cli" in message for message in caplog.text.splitlines())
         # Assert the exception message is correct
-        assert "Subprocess Error" in str(exec_info.value)
+        assert "Speed test failed with all designated servers" in str(exec_info.value)

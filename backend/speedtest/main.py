@@ -1,6 +1,8 @@
 import logging
+import os
+
 import requests
-from speedtracker.speed_test import SpeedTest
+from speedtest.speed_test import SpeedTest
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -9,7 +11,9 @@ if __name__ == '__main__':
     spt = SpeedTest()
     speed_test_results = spt.run_test()
 
-    url = "http://localhost:8000/api/speed-tests" # TODO: Move to env variable
+    #TODO: Set SPEEDTEST_API_URL
+    api_url = os.environ.get('SPEEDTEST_API_URL', "http://localhost:8000")
+    url = f"{api_url}/api/speed-tests"
     try:
         response = requests.post(url, json=speed_test_results.model_dump())
         if response.status_code == 201:

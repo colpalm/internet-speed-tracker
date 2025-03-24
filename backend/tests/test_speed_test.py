@@ -1,11 +1,11 @@
 # Pytest unit tests
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch, Mock
 
 import pytest
 from shared.enums import TimeOfDay
-from speedtest.speed_test import determine_time_of_day, SpeedTest
+from speedtest.speed_test import SpeedTest
 from shared.schemas import SpeedTestResult
 
 SAMPLE_RESPONSE = [{
@@ -39,7 +39,14 @@ def sample_json_output() -> str:
     (4, TimeOfDay.EVENING),
 ])
 def test_determine_time_of_day(hour: int, expected: TimeOfDay):
-    assert determine_time_of_day(hour) == expected
+    assert SpeedTest._determine_time_of_day(hour) == expected
+
+
+def test_utc_conversion():
+    naive_dt = datetime(2025, 3, 20, 21, 46, 35)
+    result = SpeedTest._convert_to_utc(naive_dt)
+    assert result.tzinfo is not None
+    assert result.tzinfo == timezone.utc
 
 
 def test_parse_speedtest_output(sample_json_output):
@@ -52,7 +59,9 @@ def test_parse_speedtest_output(sample_json_output):
     response_entry: dict = SAMPLE_RESPONSE[0]
 
     expected_timestamp: datetime = datetime.fromisoformat(response_entry['timestamp'])
-    expected_time_of_day: TimeOfDay = determine_time_of_day(expected_timestamp.hour)
+    utc_expected_timestamp: datetime = SpeedTest._convert_to_utc(expected_timestamp)
+    local_hour = SpeedTest._get_local_hour(utc_expected_timestamp)
+    expected_time_of_day: TimeOfDay = SpeedTest._determine_time_of_day(local_hour)
 
     assert result.timestamp == expected_timestamp
     assert result.download_speed == response_entry['download']

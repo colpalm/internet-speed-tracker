@@ -10,7 +10,7 @@ class SpeedTestRecord(Base):
     __tablename__ = 'speed_test_records'
 
     id = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime(timezone=True), nullable=False) # Stored in UTC
     download_speed = Column(Float, nullable=False)  # Mbps
     upload_speed = Column(Float, nullable=False)  # Mbps
     latency = Column(Float, nullable=False)  # ms

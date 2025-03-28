@@ -1,0 +1,10 @@
+# Separate compose file for speedtest since its deployment is not coupled with other resources
+services:
+  # Speed Test Service
+  speedtest:
+    image: internet-speed-tracker-speedtest:${VERSION}
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      - SPEEDTEST_API_URL=${SPEEDTEST_API_URL}

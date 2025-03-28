@@ -4,13 +4,9 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from database.db_manager import DatabaseManager
 from shared.schemas import SpeedTestResult
-from dotenv import load_dotenv
-
-# Load .env variables
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 # Read CORS settings
-allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS").split(",")
+allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 app = FastAPI(title="Internet Speed Tracker API")
 

@@ -1,10 +1,11 @@
 .PHONY: full-build verify-code backend-verify frontend-verify \
 		install-dependencies pytest-tests behave-tests python-clean-up \
 		docker-build docker-build-api docker-build-speedtest docker-build-frontend \
-		frontend-lint dev
+		frontend-install frontend-lint \
+		dev docker-up docker-down
 
 # Build version
-VERSION=1.0.0-dev
+VERSION?=1.0.0-dev
 
 # Main build target - verify code then build images
 full-build: verify-code docker-build
@@ -75,4 +76,12 @@ dev:
 	@trap 'kill $$(jobs -p)' EXIT; \
 	cd backend && poetry run uvicorn api.app:app --reload --port 8000 & \
 	cd frontend && npm run dev
+
+docker-up:
+	@echo "Starting all services"
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml up
+
+docker-down:
+	@echo "Stopping all Docker Compose services..."
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml down
 

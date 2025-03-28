@@ -4,3 +4,6 @@ frontend/.git*
 frontend/node_modules
 frontend/.next
 frontend/README.md
+
+# backend
+backend/.env*

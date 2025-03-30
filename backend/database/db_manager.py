@@ -1,4 +1,6 @@
 import logging
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,13 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
-    def __init__(self, db_url: str = "sqlite:///speed_tests.db"):
+    def __init__(self, db_url: str = None):
         """
         Initialize the database manager with a connection URL.
 
         Args:
-            db_url (str): SQLAlchemy database URL. Defaults to a local SQLite database.
+            db_url (str): SQLAlchemy database URL. If None, will use environment variable or default to SQLite.
         """
+        if db_url is None:
+            db_url = os.getenv("DATABASE_URL", "sqlite:///speed_tests.db")
+
         self.engine = create_engine(db_url)
         self.session_factory = sessionmaker(bind=self.engine)
 
@@ -37,6 +42,7 @@ class DatabaseManager:
             session = self.session_factory()
 
             # Extract server info
+            # TODO: no longer have server name
             server_id = result.server.get("id") if result.server else None
             server_name = result.server.get("name") if result.server else None
 

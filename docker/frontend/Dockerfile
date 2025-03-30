@@ -12,6 +12,9 @@ RUN npm ci
 # Copy project files
 COPY frontend/ .
 
+# ENV variable needs to be set at build time
+ENV NEXT_PUBLIC_API_URL=http://localhost:8000
+
 # Build the Next.js app
 RUN npm run build
 

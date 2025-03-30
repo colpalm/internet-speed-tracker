@@ -1,0 +1,41 @@
+services:
+  # PostgreSQL Service
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Service
+  api:
+    image: internet-speed-tracker-api:${VERSION}
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+
+  # Frontend
+  frontend:
+    image: internet-speed-tracker-frontend:${VERSION}
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:

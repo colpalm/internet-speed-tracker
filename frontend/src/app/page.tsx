@@ -2,44 +2,104 @@
 
 import {useState, useEffect} from "react";
 import axios from "axios";
-import { SpeedTestResult } from "@/types/speedTest"
+import {SpeedTestChartData, SpeedTestResult} from "@/types/speedTest"
+import SpeedTestChart from "@/components/SpeedTestChart";
 
 export default function Home() {
-  const [speedTest, setSpeedTest] = useState<SpeedTestResult | null>(null);
+  const [latestSpeedTest, setLatestSpeedTest] = useState<SpeedTestResult | null>(null);
+  const [speedTests, setSpeedTests] = useState<SpeedTestChartData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
-    (async () => {
+    const fetchLatestSpeedTest = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/speed-tests/latest`);
-        setSpeedTest(response.data);
+        setLatestSpeedTest(response.data);
       } catch (err: unknown) {
           console.error("Error fetching speed test:", err)
-
-          if (axios.isAxiosError(err)) {
-              setError(err.response?.data?.detail || "Failed to fetch speed test data.");
-          } else if (err instanceof Error) {
-              setError(err.message);
-          } else {
-              setError("An unknown error occurred");
-          }
+          handleError(err);
       }
-    })();
+    };
+
+    const fetchSpeedTests = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/speed-tests?limit=10`);
+
+            // Transform data for the chart
+            const chartData: SpeedTestChartData[] = response.data.map((test: SpeedTestResult) => {
+                const date = new Date(test.timestamp);
+                return {
+                    timestamp: test.timestamp,
+                    formatted_date: formatDate(date),
+                    download_speed: test.download_speed,
+                    upload_speed: test.upload_speed,
+                    latency: test.latency,
+                };
+            });
+
+            setSpeedTests(chartData);
+        } catch (err: unknown) {
+            console.error("Error fetching speed tests:", err)
+            handleError(err);
+        }
+    };
+
+    const handleError = (err: unknown) => {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.detail || "Failed to fetch speed test data.");
+      } else if (err instanceof Error) {
+          setError(err.message);
+      } else {
+          setError("An unknown error occurred");
+      }
+  }
+
+    fetchLatestSpeedTest();
+    fetchSpeedTests();
   }, [API_URL]);
 
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
-  if (!speedTest) return <p>Loading latest speed test...</p>;
+  const formatDate = (date: Date): string => {
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  if (error) return <p className="text-red-500 p-6">{error}</p>;
+  if (!latestSpeedTest) return <p className="p-6">Loading latest speed test...</p>;
 
   return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Internet Speed Tracker</h1>
-        <h2 className="text-lg mt-4">Latest Speed Test Result</h2>
-        <p><strong>Download Speed:</strong> {speedTest.download_speed} Mbps</p>
-        <p><strong>Upload Speed:</strong> {speedTest.upload_speed} Mbps</p>
-        <p><strong>Latency:</strong> {speedTest.latency} ms</p>
-        <p><strong>Test Time:</strong> {new Date(speedTest.timestamp).toLocaleString()}</p>
-        <p><strong>Server:</strong> {speedTest.server.name} (ID: {speedTest.server.id})</p>
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Internet Speed Tracker</h1>
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Latest Speed Test Result</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-300">Download Speed</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-300">{latestSpeedTest.download_speed} Mbps</p>
+          </div>
+          <div className="p-4 bg-green-50 dark:bg-green-900 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-300">Upload Speed</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-300">{latestSpeedTest.upload_speed} Mbps</p>
+          </div>
+          <div className="p-4 bg-purple-50 dark:bg-purple-900 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-300">Latency</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-300">{latestSpeedTest.latency} ms</p>
+          </div>
+        </div>
+        <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
+          <p><strong>Test Time:</strong> {new Date(latestSpeedTest.timestamp).toLocaleString()}</p>
+          <p><strong>Server:</strong> {latestSpeedTest.server.name} (ID: {latestSpeedTest.server.id})</p>
+        </div>
       </div>
+
+      {speedTests.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Speed Test History</h2>
+          <SpeedTestChart data={speedTests} />
+        </div>
+      ) : (
+        <p>Loading speed test history...</p>
+      )}
+    </div>
   );
 }

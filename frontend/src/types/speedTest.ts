@@ -6,3 +6,7 @@ export interface SpeedTestResult {
   time_of_day: string;
   server: {id: number, name: string};
 }
+
+export interface SpeedTestChartData extends SpeedTestResult {
+  formatted_date: string;
+}

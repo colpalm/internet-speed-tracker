@@ -26,8 +26,8 @@ To remove the volume, run:
 docker volume rm internet-speed-tracker_postgres_data
 ```
 
-### Local Development
-For development without Docker:
-- Run `make dev` to deploy the backend and frontend services
-- From the `backend` directory, run `poetry run python speedtest/main.py` to generate a speed test result.
+### Frontend Development with Docker Backend
+To run frontend dev server with docker backend:
+- Run `make frontend-dev` to deploy the backend and frontend services
 - Access the frontend at `http://localhost:3000`
+- Tear down with `make frontend-dev-down`

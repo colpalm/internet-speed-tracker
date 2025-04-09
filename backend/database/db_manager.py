@@ -69,27 +69,33 @@ class DatabaseManager:
             if session:
                 session.close()
 
-    def get_latest_speed_tests(self, limit: int = 10) -> list[SpeedTestRecord]:
+    def get_latest_speed_tests(self, limit: int = 10, ascending: bool = False) -> list[SpeedTestRecord]:
         """
         Retrieve the most recent speed test records.
 
         Args:
             limit (int): Maximum number of records to return
+            ascending (bool): If True, sort from oldest to newest, otherwise newest to oldest
 
         Returns:
             List of SpeedTestRecord objects
         """
         session = None
+        records = []
         try:
             session = self.session_factory()
-            records = session.query(SpeedTestRecord) \
-                .order_by(SpeedTestRecord.timestamp.desc()) \
-                .limit(limit) \
-                .all()
-            return records
+            query = session.query(SpeedTestRecord)
+
+            if ascending:
+                query = query.order_by(SpeedTestRecord.timestamp.asc())
+            else:
+                query = query.order_by(SpeedTestRecord.timestamp.desc())
+
+            records = query.limit(limit).all()
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving speed test records: {e}")
-            return []
         finally:
             if session:
                 session.close()
+
+        return records

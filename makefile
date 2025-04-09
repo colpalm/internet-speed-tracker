@@ -2,7 +2,7 @@
 		install-dependencies pytest-tests behave-tests python-clean-up \
 		docker-build docker-build-api docker-build-speedtest docker-build-frontend \
 		frontend-install frontend-lint \
-		dev docker-up docker-down
+		frontend-dev frontend-dev-down docker-up docker-down
 
 # Build version
 VERSION?=1.0.0-dev
@@ -69,14 +69,18 @@ frontend-lint:
 
 ## Deploy Locally ##
 
-# Deploy frontend and backend
-dev:
-	@echo "Starting development environment..."
-	@echo "Press Ctrl+C to stop all processes."
-	@trap 'kill $$(jobs -p)' EXIT; \
-	cd backend && poetry run uvicorn api.app:app --reload --port 8000 & \
+# Deploy backend in docker and frontend with npm
+frontend-dev:
+	@echo "Starting backend services in Docker"
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml up -d api db speedtest
+	@echo "Starting frontend in development mode..."
 	cd frontend && npm run dev
 
+frontend-dev-down:
+	@echo "Stopping backend services..."
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml down api db speedtest
+
+# Deploy full containerized application
 docker-up:
 	@echo "Starting all services"
 	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml up

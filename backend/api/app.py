@@ -54,3 +54,29 @@ async def get_latest_speed_test_result() -> SpeedTestResult:
         time_of_day=latest_record.time_of_day,
         server={"id": latest_record.server_id, "name": latest_record.server_name}
     )
+
+@app.get("/api/speed-tests", response_model=list[SpeedTestResult])
+async def get_speed_test_results(limit: int = 10, ascending: bool = True) -> list[SpeedTestResult]:
+    """
+    Fetch multiple speed test results from the database.
+
+    Args:
+        limit: Maximum number of results to return (default: 10)
+        ascending: Sort from oldest to newest if True (default: True)
+    """
+    records = db_manager.get_latest_speed_tests(limit=limit, ascending=ascending)
+    if not records:
+        raise HTTPException(status_code=404, detail="Speed test results not found")
+
+    return [
+        SpeedTestResult(
+            timestamp=record.timestamp,
+            download_speed=record.download_speed,
+            upload_speed=record.upload_speed,
+            latency=record.latency,
+            time_of_day=record.time_of_day,
+            server={"id": record.server_id, "name": record.server_name}
+        ) for record in records
+    ]
+
+

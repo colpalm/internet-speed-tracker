@@ -88,7 +88,7 @@ export default function Home() {
         </div>
         <div className="mt-4 text-sm text-gray-600 dark:text-gray-300">
           <p><strong>Test Time:</strong> {new Date(latestSpeedTest.timestamp).toLocaleString()}</p>
-          <p><strong>Server:</strong> {latestSpeedTest.server.name} (ID: {latestSpeedTest.server.id})</p>
+          <p><strong>Server:</strong> {latestSpeedTest.server.name}</p>
         </div>
       </div>
 

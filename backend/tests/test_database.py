@@ -25,7 +25,7 @@ def sample_speed_test_result():
         upload_speed=25.75,
         latency=15.2,
         time_of_day=TimeOfDay.AFTERNOON,
-        server={"id": 12345, "name": "Test Server"}
+        server={"name": "Test Server", "url": "https://test.com"}
     )
 
 
@@ -46,8 +46,8 @@ def test_save_speed_test_result(test_db, sample_speed_test_result):
         assert record.upload_speed == sample_speed_test_result.upload_speed
         assert record.latency == sample_speed_test_result.latency
         assert record.time_of_day == sample_speed_test_result.time_of_day
-        assert record.server_id == sample_speed_test_result.server["id"]
         assert record.server_name == sample_speed_test_result.server["name"]
+        assert record.server_url == sample_speed_test_result.server["url"]
     finally:
         session.close()
 

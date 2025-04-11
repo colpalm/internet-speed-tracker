@@ -15,8 +15,8 @@ class SpeedTestRecord(Base):
     upload_speed = Column(Float, nullable=False)  # Mbps
     latency = Column(Float, nullable=False)  # ms
     time_of_day = Column(Enum(TimeOfDay), nullable=False)
-    server_id = Column(Integer)
     server_name = Column(String)
+    server_url = Column(String)
 
     def __repr__(self):
         return (f"<SpeedTestRecord(id={self.id}, timestamp={self.timestamp}, "

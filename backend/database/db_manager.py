@@ -42,9 +42,8 @@ class DatabaseManager:
             session = self.session_factory()
 
             # Extract server info
-            # TODO: no longer have server name
-            server_id = result.server.get("id") if result.server else None
             server_name = result.server.get("name") if result.server else None
+            server_url = result.server.get("url") if result.server else None
 
             record = SpeedTestRecord(
                 timestamp=result.timestamp,
@@ -52,8 +51,8 @@ class DatabaseManager:
                 upload_speed=result.upload_speed,
                 latency=result.latency,
                 time_of_day=result.time_of_day,
-                server_id=server_id,
-                server_name=server_name
+                server_name=server_name,
+                server_url=server_url,
             )
 
             session.add(record)

@@ -52,7 +52,7 @@ async def get_latest_speed_test_result() -> SpeedTestResult:
         upload_speed=latest_record.upload_speed,
         latency=latest_record.latency,
         time_of_day=latest_record.time_of_day,
-        server={"id": latest_record.server_id, "name": latest_record.server_name}
+        server={"name": latest_record.server_name, "url": latest_record.server_url}
     )
 
 @app.get("/api/speed-tests", response_model=list[SpeedTestResult])
@@ -75,7 +75,7 @@ async def get_speed_test_results(limit: int = 10, ascending: bool = True) -> lis
             upload_speed=record.upload_speed,
             latency=record.latency,
             time_of_day=record.time_of_day,
-            server={"id": record.server_id, "name": record.server_name}
+            server={"name": record.server_name, "url": record.server_url}
         ) for record in records
     ]
 

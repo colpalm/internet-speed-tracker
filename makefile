@@ -2,7 +2,7 @@
 		install-dependencies pytest-tests behave-tests python-clean-up \
 		docker-build docker-build-api docker-build-speedtest docker-build-frontend \
 		frontend-install frontend-lint \
-		frontend-dev frontend-dev-down docker-up docker-down
+		frontend-dev frontend-dev-down docker-up docker-down docker-clean
 
 # Build version
 VERSION?=1.0.0-dev
@@ -70,22 +70,27 @@ frontend-lint:
 ## Deploy Locally ##
 
 # Deploy backend in docker and frontend with npm
+# Don't need the speedtest since we're seeding db with test records
 frontend-dev:
 	@echo "Starting backend services in Docker"
-	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml up -d api db speedtest
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.dev.yml up -d api db db-init seed-db
 	@echo "Starting frontend in development mode..."
 	cd frontend && npm run dev
 
 frontend-dev-down:
 	@echo "Stopping backend services..."
-	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml down api db speedtest
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.dev.yml down
 
 # Deploy full containerized application
 docker-up:
 	@echo "Starting all services"
-	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml up
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml -f docker-compose.dev.yml up
 
 docker-down:
 	@echo "Stopping all Docker Compose services..."
-	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml down
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml -f docker-compose.dev.yml down
 
+# Full docker cleanup including volumes
+docker-clean:
+	@echo "Stopping all Docker Compose services and removing volumes..."
+	VERSION=$(VERSION) docker compose --env-file ./backend/.env -f docker-compose.yml -f docker-compose.speedtest.yml -f docker-compose.dev.yml down -v

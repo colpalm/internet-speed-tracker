@@ -1,0 +1,26 @@
+# docker-compose.dev.yml
+services:
+  # Initialize db - create table before seeding test records (TODO: Replace with Alembic migration implementation)
+  db-init:
+    image: internet-speed-tracker-api:${VERSION}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: [ "python", "-c", "from database.db_manager import DatabaseManager; DatabaseManager().init_db()" ]
+
+  # Service to create test data in test environments
+  seed-db:
+    image: postgres:16-alpine
+    volumes:
+      - ./backend/tests/utils/seed_data.sql:/docker-entrypoint-initdb.d/seed_data.sql
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    command: >
+      psql -h db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /docker-entrypoint-initdb.d/seed_data.sql

@@ -26,6 +26,11 @@ To remove the volume, run:
 docker volume rm internet-speed-tracker_postgres_data
 ```
 
+To remove all services and volumes, run:
+```bash
+make docker-clean
+```
+
 ### Frontend Development with Docker Backend
 To run frontend dev server with docker backend:
 - Run `make frontend-dev` to deploy the backend and frontend services

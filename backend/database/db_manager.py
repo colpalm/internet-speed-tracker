@@ -83,14 +83,22 @@ class DatabaseManager:
         records = []
         try:
             session = self.session_factory()
-            query = session.query(SpeedTestRecord)
+            
+            # Create a subquery to get the IDs of the latest records
+            subquery = session.query(SpeedTestRecord.id)\
+                .order_by(SpeedTestRecord.timestamp.desc())\
+                .limit(limit)\
+                .subquery()
 
-            if ascending:
-                query = query.order_by(SpeedTestRecord.timestamp.asc())
-            else:
-                query = query.order_by(SpeedTestRecord.timestamp.desc())
-
-            records = query.limit(limit).all()
+            # Determine order clause
+            order_clause = SpeedTestRecord.timestamp.asc() if ascending else SpeedTestRecord.timestamp.desc()
+            
+            # Main query to fetch records with the desired sort order
+            query = session.query(SpeedTestRecord)\
+                .filter(SpeedTestRecord.id.in_(subquery))\
+                .order_by(order_clause)
+            
+            records = query.all()
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving speed test records: {e}")
         finally:

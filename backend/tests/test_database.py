@@ -29,6 +29,25 @@ def sample_speed_test_result():
     )
 
 
+def create_speed_test_results(test_db: DatabaseManager, num_results: int = 5, start_hour: int = 12) -> bool:
+    """Helper function to create speed test records"""
+    records = []
+    # Save multiple records with different timestamps
+    for i in range(num_results):
+        result = SpeedTestResult(
+            timestamp=datetime(2025, 3, 1, start_hour + i, 0, 0),
+            download_speed=100.0 + i,
+            upload_speed=20.0 + i,
+            latency=15.0 + i,
+            time_of_day=TimeOfDay.AFTERNOON,
+            server={"name": "Test Server", "url": "https://test.com"}
+        )
+        success = test_db.save_speed_test_result(result)
+        if success:
+            records.append(result)
+    return len(records) == num_results
+
+
 def test_save_speed_test_result(test_db, sample_speed_test_result):
     """Test saving speed test results."""
     success = test_db.save_speed_test_result(sample_speed_test_result)
@@ -52,20 +71,11 @@ def test_save_speed_test_result(test_db, sample_speed_test_result):
         session.close()
 
 
-def test_get_speed_test_result(test_db, sample_speed_test_result):
+def test_get_speed_test_result(test_db):
     """Test retrieving the most recent speed test records."""
-
-    # Save multiple records with different timestamps
-    for i in range(5):
-        result = SpeedTestResult(
-            timestamp=datetime(2025, 3, 1, 12 + i, 0, 0),
-            download_speed=100.0 + i,
-            upload_speed=20.0 + i,
-            latency=15.0 + i,
-            time_of_day=TimeOfDay.AFTERNOON,
-            server={"id": 12345, "name": "Test Server"}
-        )
-        test_db.save_speed_test_result(result)
+    success = create_speed_test_results(test_db)
+    if not success:
+        pytest.fail("Failed to save speed test results")
 
     # Get the 3 latest records
     records = test_db.get_latest_speed_tests(3)
@@ -78,3 +88,22 @@ def test_get_speed_test_result(test_db, sample_speed_test_result):
     # Verify values
     assert records[0].download_speed == pytest.approx(104.0)
     assert records[0].upload_speed == pytest.approx(24.0)
+
+def test_get_speed_test_result_asc(test_db, sample_speed_test_result):
+    """Test retrieving the most recent speed test records in chronological order."""
+
+    success = create_speed_test_results(test_db)
+    if not success:
+        pytest.fail("Failed to save speed test results")
+
+    # Get the 3 latest records
+    records = test_db.get_latest_speed_tests(3, ascending=True)
+    assert len(records) == 3
+
+    # Verify order
+    assert records[0].timestamp < records[1].timestamp
+    assert records[1].timestamp < records[2].timestamp
+
+    # Verify values
+    assert records[0].download_speed == pytest.approx(102.0)
+    assert records[0].upload_speed == pytest.approx(22.0)

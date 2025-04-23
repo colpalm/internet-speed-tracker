@@ -5,6 +5,7 @@ class TimeOfDay(Enum):
     MORNING = "Morning"
     AFTERNOON = "Afternoon"
     EVENING = "Evening"
+    ALL = "All"
 
 
 class SpeedTestServer(Enum):

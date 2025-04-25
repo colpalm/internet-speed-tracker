@@ -1,9 +1,11 @@
 import os
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from database.db_manager import DatabaseManager
-from shared.schemas import SpeedTestResult
+from shared.enums import TimeOfDay
+from shared.schemas import SpeedTestResult, SpeedTestSummaryResult
 
 # Read CORS settings
 allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -79,4 +81,30 @@ async def get_speed_test_results(limit: int = 10, ascending: bool = True) -> lis
         ) for record in records
     ]
 
+@app.get("/api/speed-tests/summary", response_model=list[SpeedTestSummaryResult])
+async def get_speed_test_summary(time_of_day: Optional[TimeOfDay] = None) -> list[SpeedTestSummaryResult]:
+    """
+    Fetch summary statistics for speed tests.
 
+    Args:
+        time_of_day: Filter by time of day (Morning, Afternoon, Evening, or ALL)
+    """
+    records = db_manager.get_speed_test_summary(time_of_day=time_of_day)
+    if not records:
+        raise HTTPException(status_code=404, detail="Speed test summary not found")
+
+    return [
+        SpeedTestSummaryResult(
+            time_of_day=record.time_of_day,
+            avg_download_speed=record.avg_download_speed,
+            max_download_speed=record.max_download_speed,
+            min_download_speed=record.min_download_speed,
+            avg_upload_speed=record.avg_upload_speed,
+            max_upload_speed=record.max_upload_speed,
+            min_upload_speed=record.min_upload_speed,
+            avg_latency=record.avg_latency,
+            max_latency=record.max_latency,
+            min_latency=record.min_latency,
+            test_count=record.test_count
+        ) for record in records
+    ]

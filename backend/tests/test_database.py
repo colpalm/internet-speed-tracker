@@ -186,10 +186,7 @@ def test_summary_stats_all(pg_manager, multiple_speed_test_results):
     assert len(results) == 3
 
     # Get all summary stats returned from the db
-    all_summary_stats = None
-    for result in results:
-        if result.time_of_day == TimeOfDay.ALL:
-            all_summary_stats = result
+    all_summary_stats = next((result for result in results if result.time_of_day is None), None)
     assert all_summary_stats is not None
 
     verify_summary_stats(morning_entries + evening_entries, all_summary_stats)

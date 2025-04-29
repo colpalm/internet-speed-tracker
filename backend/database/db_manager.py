@@ -5,6 +5,7 @@ from sqlalchemy import create_engine, inspect, text, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from database.models import Base, SpeedTestRecord, SpeedTestSummary
+from shared.enums import TimeOfDay
 from shared.schemas import SpeedTestResult
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class DatabaseManager:
         """Create all tables if they don't exist."""
         logger.info("Initializing database tables")
         Base.metadata.create_all(self.engine)
-        self.create_summary_mat_view()
+        self.create_summary_view()
 
     def save_speed_test_result(self, result: SpeedTestResult) -> bool:
         """Save a speedtest result to the database.
@@ -59,9 +60,6 @@ class DatabaseManager:
             session.add(record)
             session.commit()
             logger.info(f"Saved speed test result from {result.timestamp}")
-
-            # Refresh materialized view after saving new data
-            self.refresh_summary_mat_view()
 
             return True
         except SQLAlchemyError as e:
@@ -113,82 +111,49 @@ class DatabaseManager:
 
         return records
 
-    def create_summary_mat_view(self) -> None:
-        """Create the speed_test_summary materialized view if it doesn't exist."""
+    def create_summary_view(self) -> None:
+        """Create the speed_test_summary view if it doesn't exist."""
         session = None
         try:
             session = self.session_factory()
 
-            # Check if the view exists
-            inspector = inspect(self.engine)
-            view_exists = "speed_test_summary" in inspector.get_view_names()
-            if not view_exists:
-                logger.info("Creating speed_test_summary materialized view")
-                session.execute(text("""
-                CREATE MATERIALIZED VIEW speed_test_summary AS
-                -- Time of day specific stats
-                SELECT
-                    time_of_day,
-                    NOW() as last_updated,
-                    AVG(download_speed) as avg_download_speed,
-                    MAX(download_speed) as max_download_speed,
-                    MIN(download_speed) as min_download_speed,
-                    AVG(upload_speed) as avg_upload_speed,
-                    MAX(upload_speed) as max_upload_speed,
-                    MIN(upload_speed) as min_upload_speed,
-                    AVG(latency) as avg_latency,
-                    MIN(latency) as min_latency,
-                    MAX(latency) as max_latency,
-                    COUNT(*) as test_count
-                FROM speed_test_records
-                GROUP BY time_of_day
-
-                UNION ALL
-
-                -- Overall stats across all time periods
-                SELECT 
-                    'ALL' as time_of_day,
-                    NOW() as last_updated,
-                    AVG(download_speed) as avg_download_speed,
-                    MAX(download_speed) as max_download_speed,
-                    MIN(download_speed) as min_download_speed,
-                    AVG(upload_speed) as avg_upload_speed,
-                    MAX(upload_speed) as max_upload_speed,
-                    MIN(upload_speed) as min_upload_speed,
-                    AVG(latency) as avg_latency,
-                    MIN(latency) as min_latency,
-                    MAX(latency) as max_latency,
-                    COUNT(*) as test_count
-                FROM speed_test_records;
-                """))
-                session.commit()
-                logger.info("Created speed_test_summary materialized view")
-        except SQLAlchemyError as e:
-            logger.error(f"Database error while creating summary materialized view: {e}")
-            if session:
-                session.rollback()
-        finally:
-            if session:
-                session.close()
-
-    def refresh_summary_mat_view(self) -> None:
-        """Refresh the speed_test_summary materialized view with the latest data."""
-        session = None
-        try:
-            session = self.session_factory()
-            session.execute(text("REFRESH MATERIALIZED VIEW speed_test_summary;"))
+            logger.info("Creating/replacing speed_test_summary view")
+            session.execute(text("""
+            CREATE OR REPLACE VIEW speed_test_summary AS
+            SELECT
+                CASE
+                    WHEN time_of_day is NULL THEN 0
+                    WHEN time_of_day = 'MORNING' THEN 1
+                    WHEN time_of_day = 'AFTERNOON' THEN 2
+                    WHEN time_of_day = 'EVENING' THEN 3
+                END AS id,
+                time_of_day,
+                NOW() as last_updated,
+                AVG(download_speed) as avg_download_speed,
+                MAX(download_speed) as max_download_speed,
+                MIN(download_speed) as min_download_speed,
+                AVG(upload_speed) as avg_upload_speed,
+                MAX(upload_speed) as max_upload_speed,
+                MIN(upload_speed) as min_upload_speed,
+                AVG(latency) as avg_latency,
+                MIN(latency) as min_latency,
+                MAX(latency) as max_latency,
+                COUNT(*) as test_count
+            FROM speed_test_records
+            GROUP BY ROLLUP(time_of_day);
+            """))
             session.commit()
-            logger.info("Refreshed speed_test_summary materialized view")
+            logger.info("Created speed_test_summary view")
         except SQLAlchemyError as e:
-            logger.error(f"Database error while refreshing summary materialized view: {e}")
+            logger.error(f"Database error while creating summary stats view: {e}")
             if session:
                 session.rollback()
         finally:
             if session:
                 session.close()
 
-    def get_speed_test_summary(self, time_of_day=None) -> list[SpeedTestSummary]:
-        """Get speed test summary data from the materialized view."""
+    def get_speed_test_summary(self, time_of_day: TimeOfDay=None) -> list[SpeedTestSummary]:
+        """Get speed test summary data from the view."""
         session = None
         records = []
         try:

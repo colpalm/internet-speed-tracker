@@ -29,12 +29,13 @@ class SpeedTestRecord(Base):
 
 class SpeedTestSummary(BaseView):
     """
-    SQLAlchemy model mapping to the speed_test_summary materialized view.
-    Note: This is mapped to a MATERIALIZED view, not a regular view.
+    SQLAlchemy model mapping to the speed_test_summary view.
+    Note: This extends BaseView and is mapped to a view
     """
     __tablename__ = 'speed_test_summary'
 
-    time_of_day = Column(Enum(TimeOfDay), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    time_of_day = Column(Enum(TimeOfDay), nullable=True)
     last_updated = Column(DateTime, default=datetime.now(timezone.utc))
     avg_download_speed = Column(Float)
     max_download_speed = Column(Float)

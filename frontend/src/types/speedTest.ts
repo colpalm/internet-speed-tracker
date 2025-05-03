@@ -4,7 +4,7 @@ export interface SpeedTestResult {
   upload_speed: number;
   latency: number;
   time_of_day: string;
-  server: {name: string, url: string};
+  server: { name: string; url: string };
 }
 
 export interface SpeedTestChartData extends SpeedTestResult {

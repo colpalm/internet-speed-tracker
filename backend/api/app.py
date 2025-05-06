@@ -4,12 +4,12 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+
 from database.db_manager import DatabaseManager
 from shared.enums import TimeOfDay
 from shared.schemas import SpeedTestResult, SpeedTestSummaryResult
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Read CORS settings
 allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -58,8 +58,9 @@ async def get_latest_speed_test_result() -> SpeedTestResult:
         upload_speed=latest_record.upload_speed,
         latency=latest_record.latency,
         time_of_day=latest_record.time_of_day,
-        server={"name": latest_record.server_name, "url": latest_record.server_url}
+        server={"name": latest_record.server_name, "url": latest_record.server_url},
     )
+
 
 @app.get("/api/speed-tests", response_model=list[SpeedTestResult])
 async def get_speed_test_results(limit: int = 10, ascending: bool = True) -> list[SpeedTestResult]:
@@ -81,9 +82,11 @@ async def get_speed_test_results(limit: int = 10, ascending: bool = True) -> lis
             upload_speed=record.upload_speed,
             latency=record.latency,
             time_of_day=record.time_of_day,
-            server={"name": record.server_name, "url": record.server_url}
-        ) for record in records
+            server={"name": record.server_name, "url": record.server_url},
+        )
+        for record in records
     ]
+
 
 @app.get("/api/speed-tests/summary", response_model=list[SpeedTestSummaryResult])
 async def get_speed_test_summary(time_of_day: Optional[TimeOfDay] = None) -> list[SpeedTestSummaryResult]:
@@ -109,6 +112,7 @@ async def get_speed_test_summary(time_of_day: Optional[TimeOfDay] = None) -> lis
             avg_latency=record.avg_latency,
             max_latency=record.max_latency,
             min_latency=record.min_latency,
-            test_count=record.test_count
-        ) for record in records
+            test_count=record.test_count,
+        )
+        for record in records
     ]

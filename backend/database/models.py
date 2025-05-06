@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, Float, String, DateTime, Enum, MetaData
+from sqlalchemy import Column, DateTime, Enum, Float, Integer, MetaData, String
 from sqlalchemy.orm import declarative_base
+
 from shared.enums import TimeOfDay
 
 # Base for tables
@@ -10,11 +11,12 @@ Base = declarative_base()
 # Base for views / materialized views
 BaseView = declarative_base(metadata=MetaData())
 
+
 class SpeedTestRecord(Base):
-    __tablename__ = 'speed_test_records'
+    __tablename__ = "speed_test_records"
 
     id = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime(timezone=True), nullable=False) # Stored in UTC
+    timestamp = Column(DateTime(timezone=True), nullable=False)  # Stored in UTC
     download_speed = Column(Float, nullable=False)  # Mbps
     upload_speed = Column(Float, nullable=False)  # Mbps
     latency = Column(Float, nullable=False)  # ms
@@ -23,16 +25,20 @@ class SpeedTestRecord(Base):
     server_url = Column(String)
 
     def __repr__(self):
-        return (f"<SpeedTestRecord(id={self.id}, timestamp={self.timestamp}, "
-                f"download_speed={self.download_speed}, upload_speed={self.upload_speed}, "
-                f"latency={self.latency}, time_of_day={self.time_of_day})>")
+        return (
+            f"<SpeedTestRecord(id={self.id}, timestamp={self.timestamp}, "
+            f"download_speed={self.download_speed}, upload_speed={self.upload_speed}, "
+            f"latency={self.latency}, time_of_day={self.time_of_day})>"
+        )
+
 
 class SpeedTestSummary(BaseView):
     """
     SQLAlchemy model mapping to the speed_test_summary view.
     Note: This extends BaseView and is mapped to a view
     """
-    __tablename__ = 'speed_test_summary'
+
+    __tablename__ = "speed_test_summary"
 
     id = Column(Integer, primary_key=True)
     time_of_day = Column(Enum(TimeOfDay), nullable=True)
@@ -48,4 +54,4 @@ class SpeedTestSummary(BaseView):
     min_latency = Column(Float)
     test_count = Column(Integer)
 
-    __table_args__ = {'info': {'is_view': True}}
+    __table_args__ = {"info": {"is_view": True}}

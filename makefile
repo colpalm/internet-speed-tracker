@@ -1,5 +1,6 @@
 .PHONY: full-build verify-code backend-verify frontend-verify \
 		install-dependencies pytest-tests behave-tests python-clean-up \
+		ruff-check ruff-fix ruff-format ruff-format-fix \
 		docker-build docker-build-api docker-build-speedtest docker-build-frontend \
 		frontend-install frontend-lint frontend-format frontend-format-check \
 		frontend-dev frontend-dev-down docker-up docker-down docker-clean
@@ -14,7 +15,7 @@ full-build: verify-code docker-build
 verify-code: backend-verify frontend-verify
 
 # Backend verification
-backend-verify: install-dependencies pytest-tests behave-tests python-clean-up
+backend-verify: install-dependencies ruff-check pytest-tests behave-tests python-clean-up
 
 # Frontend verification
 frontend-verify: frontend-install frontend-format-check frontend-lint
@@ -27,6 +28,21 @@ docker-build: docker-build-api docker-build-speedtest docker-build-frontend
 # Install poetry dependencies
 install-dependencies:
 	cd backend && poetry lock && poetry install --with dev
+
+# Run ruff linter to check for issues
+ruff-check:
+	cd backend && poetry run ruff check .
+
+# Fix auto-fixable issues with ruff
+ruff-fix:
+	cd backend && poetry run ruff check --fix .
+
+# Format code with ruff
+ruff-format:
+	cd backend && poetry run ruff format .
+
+# Run all code quality checks and fixes
+ruff-format-fix: ruff-format ruff-fix
 
 # Run pytest unit tests
 pytest-tests:

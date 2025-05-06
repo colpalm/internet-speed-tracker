@@ -1,18 +1,20 @@
 import logging
 import time
+from datetime import datetime, timedelta, timezone
 
 import pytest
-from datetime import datetime, timezone, timedelta
-from shared.enums import TimeOfDay
-from shared.schemas import SpeedTestResult
+from sqlalchemy.orm import close_all_sessions
+from testcontainers.postgres import PostgresContainer
+
 from database.db_manager import DatabaseManager
 from database.models import SpeedTestRecord, SpeedTestSummary
-from testcontainers.postgres import PostgresContainer
-from sqlalchemy.orm import close_all_sessions
+from shared.enums import TimeOfDay
+from shared.schemas import SpeedTestResult
 
 DB_STR = "sqlite://"
 
-pytestmark = pytest.mark.integration # Every test in file labeled as integration
+pytestmark = pytest.mark.integration  # Every test in file labeled as integration
+
 
 @pytest.fixture
 def test_db():
@@ -20,6 +22,7 @@ def test_db():
     db_manager = DatabaseManager(DB_STR)  # In-memory database
     db_manager.init_db()
     return db_manager
+
 
 @pytest.fixture(scope="module")
 def pg_manager():
@@ -60,8 +63,9 @@ def sample_speed_test_result():
         upload_speed=25.75,
         latency=15.2,
         time_of_day=TimeOfDay.AFTERNOON,
-        server={"name": "Test Server", "url": "https://test.com"}
+        server={"name": "Test Server", "url": "https://test.com"},
     )
+
 
 @pytest.fixture(scope="module")
 def multiple_speed_test_results(pg_manager) -> tuple[list[SpeedTestResult], list[SpeedTestResult]]:
@@ -76,8 +80,9 @@ def multiple_speed_test_results(pg_manager) -> tuple[list[SpeedTestResult], list
             upload_speed=20.0 + i,
             latency=10.0 + i,
             time_of_day=TimeOfDay.MORNING,
-            server={"name": "Test Server", "url": "https://test.com"}
-        ) for i in range(3)
+            server={"name": "Test Server", "url": "https://test.com"},
+        )
+        for i in range(3)
     ]
     evening_results = [
         SpeedTestResult(
@@ -86,8 +91,9 @@ def multiple_speed_test_results(pg_manager) -> tuple[list[SpeedTestResult], list
             upload_speed=30.0 + i,
             latency=5.0 + i,
             time_of_day=TimeOfDay.EVENING,
-            server={"name": "Test Server", "url": "https://test.com"}
-        ) for i in range(3)
+            server={"name": "Test Server", "url": "https://test.com"},
+        )
+        for i in range(3)
     ]
 
     # Save records
@@ -107,7 +113,7 @@ def create_speed_test_results(test_db: DatabaseManager, num_results: int = 5, st
             upload_speed=20.0 + i,
             latency=15.0 + i,
             time_of_day=TimeOfDay.AFTERNOON,
-            server={"name": "Test Server", "url": "https://test.com"}
+            server={"name": "Test Server", "url": "https://test.com"},
         )
         success = test_db.save_speed_test_result(result)
         if success:
@@ -156,6 +162,7 @@ def test_get_speed_test_result(test_db):
     assert records[0].download_speed == pytest.approx(104.0)
     assert records[0].upload_speed == pytest.approx(24.0)
 
+
 def test_get_speed_test_result_asc(test_db, sample_speed_test_result):
     """Test retrieving the most recent speed test records in chronological order."""
 
@@ -190,6 +197,7 @@ def test_summary_stats_all(pg_manager, multiple_speed_test_results):
     assert all_summary_stats is not None
 
     verify_summary_stats(morning_entries + evening_entries, all_summary_stats)
+
 
 def test_summary_stats_morning(pg_manager, multiple_speed_test_results):
     """Test getting summary statistics for just the morning period."""

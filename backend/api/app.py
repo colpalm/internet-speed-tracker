@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Optional
 
@@ -6,6 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from database.db_manager import DatabaseManager
 from shared.enums import TimeOfDay
 from shared.schemas import SpeedTestResult, SpeedTestSummaryResult
+
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Read CORS settings
 allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")

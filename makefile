@@ -1,7 +1,7 @@
 .PHONY: full-build verify-code backend-verify frontend-verify \
 		install-dependencies pytest-tests behave-tests python-clean-up \
 		docker-build docker-build-api docker-build-speedtest docker-build-frontend \
-		frontend-install frontend-lint \
+		frontend-install frontend-lint frontend-format frontend-format-check \
 		frontend-dev frontend-dev-down docker-up docker-down docker-clean
 
 # Build version
@@ -17,7 +17,7 @@ verify-code: backend-verify frontend-verify
 backend-verify: install-dependencies pytest-tests behave-tests python-clean-up
 
 # Frontend verification
-frontend-verify: frontend-install frontend-lint
+frontend-verify: frontend-install frontend-format-check frontend-lint
 
 # Build all docker images
 docker-build: docker-build-api docker-build-speedtest docker-build-frontend
@@ -66,6 +66,14 @@ frontend-install:
 # Lint frontend
 frontend-lint:
 	cd frontend && npm run lint
+
+# Format frontend files (Manual command to fix formatting - not included in build)
+frontend-format:
+	cd frontend && npm run format
+
+# Check frontend formatting without changing files
+frontend-format-check:
+	cd frontend && npm run format:check
 
 ## Deploy Locally ##
 

@@ -1,9 +1,10 @@
 import logging
 import os
 
-from sqlalchemy import create_engine, inspect, text, select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+
 from database.models import Base, SpeedTestRecord, SpeedTestSummary
 from shared.enums import TimeOfDay
 from shared.schemas import SpeedTestResult
@@ -86,13 +87,9 @@ class DatabaseManager:
         records = []
         try:
             session = self.session_factory()
-            
+
             # Select IDs of the latest records
-            id_subquery = (
-                select(SpeedTestRecord.id)
-                .order_by(SpeedTestRecord.timestamp.desc())
-                .limit(limit)
-            )
+            id_subquery = select(SpeedTestRecord.id).order_by(SpeedTestRecord.timestamp.desc()).limit(limit)
 
             # Select full records matching IDs
             stmt = (
@@ -101,7 +98,6 @@ class DatabaseManager:
                 .order_by(SpeedTestRecord.timestamp.asc() if ascending else SpeedTestRecord.timestamp.desc())
             )
 
-            
             records = session.execute(stmt).scalars().all()
         except SQLAlchemyError as e:
             logger.error(f"Database error while retrieving speed test records: {e}")
@@ -118,30 +114,32 @@ class DatabaseManager:
             session = self.session_factory()
 
             logger.info("Creating/replacing speed_test_summary view")
-            session.execute(text("""
-            CREATE OR REPLACE VIEW speed_test_summary AS
-            SELECT
-                CASE
-                    WHEN time_of_day is NULL THEN 0
-                    WHEN time_of_day = 'MORNING' THEN 1
-                    WHEN time_of_day = 'AFTERNOON' THEN 2
-                    WHEN time_of_day = 'EVENING' THEN 3
-                END AS id,
-                time_of_day,
-                NOW() as last_updated,
-                AVG(download_speed) as avg_download_speed,
-                MAX(download_speed) as max_download_speed,
-                MIN(download_speed) as min_download_speed,
-                AVG(upload_speed) as avg_upload_speed,
-                MAX(upload_speed) as max_upload_speed,
-                MIN(upload_speed) as min_upload_speed,
-                AVG(latency) as avg_latency,
-                MIN(latency) as min_latency,
-                MAX(latency) as max_latency,
-                COUNT(*) as test_count
-            FROM speed_test_records
-            GROUP BY ROLLUP(time_of_day);
-            """))
+            session.execute(
+                text("""
+                    CREATE OR REPLACE VIEW speed_test_summary AS
+                    SELECT
+                        CASE
+                            WHEN time_of_day is NULL THEN 0
+                            WHEN time_of_day = 'MORNING' THEN 1
+                            WHEN time_of_day = 'AFTERNOON' THEN 2
+                            WHEN time_of_day = 'EVENING' THEN 3
+                        END AS id,
+                        time_of_day,
+                        NOW() as last_updated,
+                        AVG(download_speed) as avg_download_speed,
+                        MAX(download_speed) as max_download_speed,
+                        MIN(download_speed) as min_download_speed,
+                        AVG(upload_speed) as avg_upload_speed,
+                        MAX(upload_speed) as max_upload_speed,
+                        MIN(upload_speed) as min_upload_speed,
+                        AVG(latency) as avg_latency,
+                        MIN(latency) as min_latency,
+                        MAX(latency) as max_latency,
+                        COUNT(*) as test_count
+                    FROM speed_test_records
+                    GROUP BY ROLLUP(time_of_day);
+                """)
+            )
             session.commit()
             logger.info("Created speed_test_summary view")
         except SQLAlchemyError as e:
@@ -152,7 +150,7 @@ class DatabaseManager:
             if session:
                 session.close()
 
-    def get_speed_test_summary(self, time_of_day: TimeOfDay=None) -> list[SpeedTestSummary]:
+    def get_speed_test_summary(self, time_of_day: TimeOfDay = None) -> list[SpeedTestSummary]:
         """Get speed test summary data from the view."""
         session = None
         records = []

@@ -1,20 +1,23 @@
 # Pytest unit tests
 import json
 from datetime import datetime, timezone
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
-from shared.enums import TimeOfDay
-from speedtest.speed_test import SpeedTest
-from shared.schemas import SpeedTestResult
 
-SAMPLE_RESPONSE = [{
-    "timestamp": "2025-03-20T21:46:35.151229-04:00",
-    "ping": 15.5,
-    "download": 200.5,
-    "upload": 10.2,
-    "server": {"name": "Test Server", "url": "https://test.com"},
-}]
+from shared.enums import TimeOfDay
+from shared.schemas import SpeedTestResult
+from speedtest.speed_test import SpeedTest
+
+SAMPLE_RESPONSE = [
+    {
+        "timestamp": "2025-03-20T21:46:35.151229-04:00",
+        "ping": 15.5,
+        "download": 200.5,
+        "upload": 10.2,
+        "server": {"name": "Test Server", "url": "https://test.com"},
+    }
+]
 
 
 @pytest.fixture
@@ -28,16 +31,19 @@ def sample_json_output() -> str:
     return json.dumps(SAMPLE_RESPONSE)
 
 
-@pytest.mark.parametrize("hour, expected", [
-    (5, TimeOfDay.MORNING),
-    (11, TimeOfDay.MORNING),
-    (12, TimeOfDay.AFTERNOON),
-    (16, TimeOfDay.AFTERNOON),
-    (17, TimeOfDay.EVENING),
-    (23, TimeOfDay.EVENING),
-    (0, TimeOfDay.EVENING),
-    (4, TimeOfDay.EVENING),
-])
+@pytest.mark.parametrize(
+    "hour, expected",
+    [
+        (5, TimeOfDay.MORNING),
+        (11, TimeOfDay.MORNING),
+        (12, TimeOfDay.AFTERNOON),
+        (16, TimeOfDay.AFTERNOON),
+        (17, TimeOfDay.EVENING),
+        (23, TimeOfDay.EVENING),
+        (0, TimeOfDay.EVENING),
+        (4, TimeOfDay.EVENING),
+    ],
+)
 def test_determine_time_of_day(hour: int, expected: TimeOfDay):
     assert SpeedTest._determine_time_of_day(hour) == expected
 
@@ -58,22 +64,22 @@ def test_parse_speedtest_output(sample_json_output):
     result: SpeedTestResult = SpeedTest._parse_speedtest_output(sample_json_output)
     response_entry: dict = SAMPLE_RESPONSE[0]
 
-    expected_timestamp: datetime = datetime.fromisoformat(response_entry['timestamp'])
+    expected_timestamp: datetime = datetime.fromisoformat(response_entry["timestamp"])
     utc_expected_timestamp: datetime = SpeedTest._convert_to_utc(expected_timestamp)
     local_hour = SpeedTest._get_local_hour(utc_expected_timestamp)
     expected_time_of_day: TimeOfDay = SpeedTest._determine_time_of_day(local_hour)
 
     assert result.timestamp == expected_timestamp
-    assert result.download_speed == response_entry['download']
-    assert result.upload_speed == response_entry['upload']
-    assert result.latency == response_entry['ping']
+    assert result.download_speed == response_entry["download"]
+    assert result.upload_speed == response_entry["upload"]
+    assert result.latency == response_entry["ping"]
     assert result.time_of_day == expected_time_of_day
-    assert result.server == response_entry['server']
+    assert result.server == response_entry["server"]
 
 
 def test_execute_speedtest_cli_error(speedtest_instance):
     """Test handling of CLI execution error"""
-    with patch('subprocess.run') as mock_run:
+    with patch("subprocess.run") as mock_run:
         mock_run.return_value = Mock(returncode=1, stderr="CLI Error")
 
         with pytest.raises(RuntimeError) as exec_info:
@@ -83,7 +89,7 @@ def test_execute_speedtest_cli_error(speedtest_instance):
 
 def test_execute_speedtest_subprocess_error(speedtest_instance, caplog):
     """Test handling of subprocess execution error."""
-    with patch('subprocess.run') as mock_run:
+    with patch("subprocess.run") as mock_run:
         mock_run.side_effect = Exception("Subprocess Error")
         with pytest.raises(Exception) as exec_info:
             speedtest_instance._execute_speedtest()

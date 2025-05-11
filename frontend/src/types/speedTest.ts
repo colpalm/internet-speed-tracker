@@ -1,9 +1,11 @@
+import { TimeOfDay } from "@/types/timePeriods";
+
 export interface SpeedTestResult {
   timestamp: string;
   download_speed: number;
   upload_speed: number;
   latency: number;
-  time_of_day: string;
+  time_of_day: TimeOfDay;
   server: { name: string; url: string };
 }
 
@@ -12,7 +14,7 @@ export interface SpeedTestChartData extends SpeedTestResult {
 }
 
 export interface SpeedTestSummaryResult {
-  time_of_day: string;
+  time_of_day: TimeOfDay;
   avg_download_speed: number;
   max_download_speed: number;
   min_download_speed: number;

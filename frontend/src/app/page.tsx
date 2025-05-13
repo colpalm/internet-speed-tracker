@@ -111,7 +111,7 @@ export default function Home() {
       </div>
 
       {/* Summary Stat Cards */}
-      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl">
+      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl mb-8">
         <h2 className="text-xl font-semibold mb-4">Summary Stats</h2>
         {selectedStats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -186,61 +186,6 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      {/* Summary Section */}
-      {summaryStats.length > 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Speed Test Summary</h2>
-          <div className="grid grid-cols-1 gap-6">
-            {summaryStats.map(stats => (
-              <div
-                key={stats.time_of_day ?? "ALL"}
-                className="border rounded-md p-4 mb-2 bg-yellow-100/70 dark:bg-amber-600/6"
-              >
-                <h3 className="font-bold mb-2">
-                  {stats.time_of_day ? `Summary (${stats.time_of_day})` : "Summary (All Times)"}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
-                  <div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Download (Mbps)</p>
-                    <p className="text-base">
-                      Avg: <span className="font-bold">{stats.avg_download_speed.toFixed(2)}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Max: {stats.max_download_speed.toFixed(2)}, Min: {stats.min_download_speed.toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Upload (Mbps)</p>
-                    <p className="text-base">
-                      Avg: <span className="font-bold">{stats.avg_upload_speed.toFixed(2)}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Max: {stats.max_upload_speed.toFixed(2)}, Min: {stats.min_upload_speed.toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Latency (ms)</p>
-                    <p className="text-base">
-                      Avg: <span className="font-bold">{stats.avg_latency.toFixed(2)}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Max: {stats.max_latency.toFixed(2)}, Min: {stats.min_latency.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  <p>
-                    <strong>Tests Count:</strong> {stats.test_count}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <p>Loading summary...</p>
-      )}
 
       {/* Latest Result Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">

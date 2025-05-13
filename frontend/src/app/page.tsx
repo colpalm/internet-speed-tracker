@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { SpeedTestChartData, SpeedTestResult, SpeedTestSummaryResult } from "@/types/speedTest";
+import { TimeOfDay, TIME_OF_DAY_OPTIONS } from "@/types/timePeriods";
 import SpeedTestChart from "@/components/SpeedTestChart";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
   const [speedTests, setSpeedTests] = useState<SpeedTestChartData[]>([]);
   const [summaryStats, setSummaryStats] = useState<SpeedTestSummaryResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<TimeOfDay>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -75,6 +77,13 @@ export default function Home() {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  // Stats for the selected time of day
+  const getSelectedStats = (): SpeedTestSummaryResult | undefined => {
+    return summaryStats.find(stats => stats.time_of_day === selectedTimeOfDay);
+  };
+
+  const selectedStats = getSelectedStats();
+
   if (error) return <p className="text-red-500 p-6">{error}</p>;
   if (!latestSpeedTest) return <p className="p-6">Loading latest speed test...</p>;
 
@@ -82,7 +91,103 @@ export default function Home() {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Internet Speed Tracker</h1>
 
-      {/*  Summary Section */}
+      {/* Time period selector */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2">
+          {TIME_OF_DAY_OPTIONS.map(option => (
+            <button
+              key={option.label}
+              onClick={() => setSelectedTimeOfDay(option.value)}
+              className={`px-2 py-1 rounded-lg transition-colors ${
+                selectedTimeOfDay === option.value
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary Stat Cards */}
+      <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-xl">
+        <h2 className="text-xl font-semibold mb-4">Summary Stats</h2>
+        {selectedStats && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Download Speed Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Download Speed</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Average</p>
+                  <p className="text-xl font-bold">{selectedStats.avg_download_speed.toFixed(1)} Mbps</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Maximum</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {selectedStats.max_download_speed.toFixed(1)} Mbps
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Minimum</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {selectedStats.min_download_speed.toFixed(1)} Mbps
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Upload Speed Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Upload Speed</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Average</p>
+                  <p className="text-xl font-bold">{selectedStats.avg_upload_speed.toFixed(1)} Mbps</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Maximum</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {selectedStats.max_upload_speed.toFixed(1)} Mbps
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Minimum</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {selectedStats.min_upload_speed.toFixed(1)} Mbps
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Latency Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Latency</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Average</p>
+                  <p className="text-xl font-bold">{selectedStats.avg_latency.toFixed(1)} ms</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Maximum</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                    {selectedStats.max_latency.toFixed(1)} ms
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Minimum</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    {selectedStats.min_latency.toFixed(1)} ms
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Section */}
       {summaryStats.length > 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Speed Test Summary</h2>
